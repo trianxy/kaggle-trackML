@@ -1,0 +1,74 @@
+Team name: Yuval & Trian
+Team members: Yuval Reina, Trian Xylouris
+Contact Emails: yuval.reina@gmail.com, t.xylouris@gmail.com
+Phone numbers: +49 174 9374 007 (Trian Xylouris)
+Final private leaderboard score: 0.8041
+Final private leaderboard rank: 7
+
+What is your team's background:
+- Other: Engeneering and Mathematics
+
+Did you have any prior experience that helped you:
+- Trian: No
+
+What made you decide to enter this competition:
+- Trian: I like physics in geometry
+
+How much time did you spend on the competition:
+- Trian: a couple of months substantial part-time
+
+If part of a team, how did you decide to team up:
+- Trian suggested to team up and combine forces, so why not.
+
+If part of a team, who did what:
+- Yuval: the major binning algorithm and track extension; Trian: The Machine Learning model and the merging algorithm, plus a little bit of fine-tuning
+
+Any feedback to the organizers:
+- Trian: I would have liked them to give more details on current technology (Kalman filter), to level up the playing field. They might have wanted to not box the participants into the corner the physicists already know, but still, we may have been able to better merge ML with Kalman.
+
+Overview of your contribution:
+- Fast binning algorithm, good choice of parameters to define the helices, which go through a hit, proof of concept that machine learning can add value assigning probabilities to tracks
+
+What is the main originality of your approach?
+- The particular implementation of the binning algorithm, which keeps the superior speed of binning, while closing the accuracy gap towards other clustering algorithms like dbscan
+
+What are the major characteristics of your method?
+- Simplicity/straightforwardness
+- Interpretability of the model parameters
+
+Did you use a competition kernel?
+- No
+
+Is your method:
+- a mixture of both (the binning is unsupervised, the ML is supervised)
+
+Do you use:
+- Feature construction
+- Clustering
+
+How many lines of code:
+- roughly 500
+
+Did you use the following features for training, or utning your model:
+- volume_id, layer_id, module_id
+- nhits
+
+Did you use the following features for evaluation on the test file:
+- volume_id, layer_id, module_id
+
+If applicable, what hardware have you used for the training?
+- Simple Laptop with i7 CPU (training was done for LightGBM, and quite light)
+
+If applicable, how long does the training take in seconds?
+- Roughly 60 seconds (1 minute)
+
+If different than for the trainig, what hardware have you used for the evaluation?
+- Remote server with 8+8 cores CPU (no GPU)
+
+How long does the evaluation takes per event in seconds?
+- The core evaluation takes roughly 1 hour (3600 seconds) per event, per CPU core
+- To slightly improve the score, we ran this core evaluation 8 times, thus 8 hours (28800 seconds) per event, per CPU core
+
+
+Any additional useful information you would like to share?
+Trian: No
