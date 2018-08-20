@@ -4,6 +4,8 @@ from ipywidgets import FloatProgress,FloatText
 from tqdm import tqdm, tqdm_notebook
 from functions.other import calc_features, get_event, score_event_fast, tag_bins
 
+# after finding the tracks we want to improve the (kt,z0) for a track by minimizing it's features std
+# the optimization is done by changing the (z0,kt) pair by random steps 
 def refine_hipos(res,hits,stds,nhipos,phik=3.3,weights=None): 
     cols=list(res.columns)
     if weights is None:
@@ -53,8 +55,17 @@ def refine_hipos(res,hits,stds,nhipos,phik=3.3,weights=None):
     
 
     
-    
-def expand_tracks(res,hits,min_track_len,max_track_len,max_expand,to_track_len,mstd=1.0,dstd=0.0,phik=3.3,max_dtheta=10,mstd_size=None,mstd_vol=None,drop=0,nhipo=1000,weights=None):
+# expands tracks by adding close loose hits to a track 
+# min_track_len: the minimum length of a track to be expanded
+# max_tack_len: a track wouldn't be expanded beyond that length
+# max_expand: the maximum hits that can be added to a track
+# to_track_len: hits from track's shotrer then this length would be considered "loose"
+# mstd/dstd - the closeness to a track wa be measured absolutly (dstd) or with relation to its std (mstd). if dstd>0 it is used
+# max_dtheta - used to add hits to tracks that rotated more then 180 degrees, a track must already rotate more then max_theta (in rad)
+# mstd_size - the size of the expand area can be changed depanding on the tracks length
+# mstd_volume - the size of the expand area can be changed depanding on the hits volume_id
+def expand_tracks(res,hits,min_track_len,max_track_len,max_expand,to_track_len,mstd=1.0,dstd=0.0,phik=3.3,
+                                                      max_dtheta=10,mstd_size=None,mstd_vol=None,drop=0,nhipo=1000,weights=None):
     if weights is None:
         weights={'theta':0.25, 'phi':1.0}
 

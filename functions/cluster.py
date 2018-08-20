@@ -24,10 +24,11 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
     rest = hits.copy()
     if weights is None:
         weights={'phi':1, 'theta':0.15}
+    
+    # This part is only for printing while running
     calc_score = not truth is None
     if not history is None:
         hist_list=[]
-    
     if calc_score:
         rest = rest.merge(truth[['hit_id','particle_id','weight']],on='hit_id',how='left')
         dum,rest['particle_track_len']=tag_bins(rest['particle_id'])
@@ -41,15 +42,16 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
         fss=FloatText(value=0, description="s rate:")
         display(fss)
         fsd=FloatText(value=0, description="add score:")
-        display(fsd)
-    
+        display(fsd)    
     ft = FloatText(value=rest.shape[0], description="Rest size:")
     display(ft)
     fg = FloatText(value=rest.shape[0], description="Group size:")
     display(fg)
     fgss = FloatText(description="filter:")
     display(fgss)
+    #End of printing part
     
+    # if res in not None we continue to work on a partial solution: res otherwise - initialize
     if res is None:
         rest['track_len']=1
         rest['track_id']=-rest.index
@@ -62,6 +64,8 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
     res_list=[]
     rest['sensor']=rest.volume_id+rest.layer_id*100+100000*rest.module_id
     rest['layers']=rest.volume_id+rest.layer_id*100
+    
+    # This function can use random (z0,kt) pairs or get a predefined list
     if pre_test_points is None:
         maxprog= filters.npoints.sum()
     else:
@@ -70,6 +74,12 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
     rest['pre_track_id']=rest['track_id']
     p=-1
     feature_cols=['theta','sint','cost','phi','rr','theta_','dtheta','fault']
+    
+    # this is the main clustering loop.
+    # a filter defines:
+    # The bins' width: filter.theta , filter.phi
+    # The minimal length of a track to be taken out of hits: min_group
+    # npoint - is the number of times to us this filter
     for filt in filters.itertuples():
         if pre_test_points is None:
             test_points=pd.DataFrame()
@@ -82,6 +92,7 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
             p=p+1
             pbar.update()
             calc_features(rest,row,phik)
+            # clustering using sparse_bin and the decide if to use the new track_id depending on the length of the track
             rest['new_track_id'],rest['new_track_len']=sparse_bin(rest[['phi','sint','cost']],filt,fault=rest.fault)
             rest['new_track_id']=rest['new_track_id']+(p+1)*label_shift_M
             better = (rest.new_track_len>rest.track_len) & (rest.new_track_len<19)
@@ -93,9 +104,13 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
             rest['kt']=rest['kt'].where(~better,row.kt)
             rest['z0']=rest['z0'].where(~better,row.z0)
             
+            # every nu loops we will do a bit of outliner removal
+            # and set a permanent tracks which are long enough bit removing their hits from rest
             if (((row.Index+1)%nu == 0) or (row.Index + 1 == test_points.shape[0])):
                 dum,rest['track_len']=tag_bins(rest['track_id'])
                 calc_features(rest,rest[['kt','z0']],phik)
+                # If two hits in the same track are from the same detector, we choose the one closest to the tracks center of gravity
+                # If 3 hits are from the same layer we choose the closest 2
                 gp = rest.groupby(['track_id']).agg({'phi': np.mean , 
                     'sint':np.mean, 'cost':np.mean}).rename(columns={ 'phi': 'mean_phi', 
                                 'sint':'mean_sint', 'cost':'mean_cost'}).reset_index()
@@ -108,6 +123,7 @@ def clustering(hits,stds,filters,phik=1.0,nu=500,weights=None,res=None,truth=Non
                 select = (rest['closest']!=0) | (rest['closest2']>2)  
                 rest['track_id']=rest['track_id'].where(~select,rest['pre_track_id'])
                 dum,rest['track_len']=tag_bins(rest['track_id'])
+                
                 fgss.value=filt.phi
                 fg.value=filt.min_group
                 ft.value = rest[rest.track_len<=filt.min_group].shape[0]
