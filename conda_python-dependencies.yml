@@ -1,4 +1,4 @@
-name: env3
+name: trackML
 channels:
   - conda-forge
   - defaults
