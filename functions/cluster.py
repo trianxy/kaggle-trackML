@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from ipywidgets import FloatProgress,FloatText
 from tqdm import tqdm, tqdm_notebook
+from IPython.display import display
+from IPython.display import HTML
 
 label_shift_M=1000000
 
