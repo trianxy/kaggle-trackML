@@ -3,6 +3,7 @@ import pandas as pd
 
 from tqdm import tqdm_notebook
 from sklearn.cluster.dbscan_ import dbscan
+from functions.other import tag_bins
 
 def merge_with_probabilities(sub1,sub2,preds1,preds2,truth=None,length_factor=0,at_least_more=0):
     """
@@ -42,30 +43,25 @@ def merge_with_probabilities(sub1,sub2,preds1,preds2,truth=None,length_factor=0,
     sub['track_id']=inv
     return sub
 
-def get_features(track_hits,cluster_size=10):    
+
+
+def get_features(sub,cluster_size=10):    
     """
-    Input: dataframe with hits of 1 track
-    Output: array with features of track
+    Input: dataframe with hits long tracks
+    Output: array with features of long track
     """
-    nhits = len(track_hits)
-    svolume=track_hits['volume_id'].values.min()
-    X=np.column_stack([track_hits.x.values, track_hits.y.values, track_hits.z.values])
-    _, labels = dbscan(X, eps=cluster_size, min_samples=1, algorithm='ball_tree', metric='euclidean')
-    uniques = np.unique(labels)
-    nclusters = len(uniques)
-    nhitspercluster = nhits/nclusters
-    xmax=track_hits['x'].values.max()
-    xmin=track_hits['x'].values.min()
-    xvar=track_hits['x'].values.var()
-    ymax=track_hits['y'].values.max()
-    ymin=track_hits['y'].values.min()
-    yvar=track_hits['y'].values.var()
-    zmax=track_hits['z'].values.max()
-    zmin=track_hits['z'].values.min()
-    zvar=track_hits['z'].values.var()
-    zmean=track_hits['z'].values.mean()
-    features=np.array([svolume,nclusters,nhitspercluster,xmax,ymax,zmax,xmin,ymin,zmin,zmean,xvar,yvar,zvar])
-    return features
+    hitst=sub.copy()
+    X=np.column_stack([hitst.x.values, hitst.y.values, hitst.z.values,hitst.track_id.values*1000000])
+    _, hitst['labels'] = dbscan(X, eps=cluster_size, min_samples=1, algorithm='ball_tree', metric='euclidean')
+    gp = hitst.groupby('track_id').agg({'hit_id':'count','labels':'nunique','volume_id':'min','x':['min','max','var'],
+                                      'y':['min','max','var'],'z':['min','max','var','mean']})
+    
+    gp.columns = ["".join(t) for t in gp.columns.ravel()]
+    gp=gp.rename(columns={'hit_idcount':'nhits','labelsnunique':'nclusters','volume_idmin':'svolume'}).reset_index()
+    gp['nhitspercluster']=gp.nhits/gp.nclusters
+    return gp
+
+
 
 def get_predictions(sub,hits,model,min_length=4):  
     """
@@ -74,28 +70,20 @@ def get_predictions(sub,hits,model,min_length=4):
            model=ML model to get prediction
     Output: dataframe with predicted probability for each track
     """
-    preds=pd.DataFrame()
-    sub=sub.merge(hits,on='hit_id',how='left')
-    trackids_long=[]
-    trackids_short=[]
-    features=[]
-    
-    trackids=np.unique(sub['track_id']).astype("int64")
-    for track_id in tqdm_notebook(trackids):        
-        track_hits=sub[sub['track_id']==track_id]
-        if len(track_hits) < min_length:
-            trackids_short.append(track_id)
-        else:
-            features.append(get_features(track_hits))
-            trackids_long.append(track_id)
 
-    probabilities_long=model.predict(np.array(features))
-    probabilities_short=np.array([0]*len(trackids_short))
-    
-    preds['quality']=np.concatenate((probabilities_long,probabilities_short))
-    preds['track_id']=np.concatenate((trackids_long,trackids_short))
+    sub=sub.merge(hits,on='hit_id',how='left')
+    _,sub['nhits']=tag_bins(sub['track_id'])
+    sub_long=sub[sub.nhits>=min_length].copy()
+    sub_short=sub[sub.nhits<min_length].copy()
+    tracks_long=get_features(sub_long)
+    tracks_long['quality']=model.predict(np.array(tracks_long[['svolume','nclusters','nhitspercluster',
+                                                        'xmax','ymax','zmax','xmin','ymin','zmin','zmean','xvar','yvar','zvar']]))
+    tracks_short=sub_short.groupby('track_id').hit_id.count().reset_index().drop('hit_id',axis=1)
+    tracks_short['quality']=0
+    preds=pd.concat([tracks_long[['track_id','quality']],tracks_short[['track_id','quality']]],ignore_index=True)
     preds['quality']=preds['quality'].fillna(1)  # assume it is a good track, if no probability can be calculated
     return preds
+
 
 
 def precision_and_recall(y_true, y_pred,threshold=0.5):
