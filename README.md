@@ -4,30 +4,26 @@ Trian Xylouris: t.xylouris@gmail.com
 
 Below you can find a outline of how to reproduce our solution for the trackML competition.
 
-For any questions, please contact us 
+For any questions, please contact us. 
 
 ## ARCHIVE CONTENTS
 - files: Directory containing the competition's event files and the user prepared training files
-  - df_test_v1.pkl				:user perpared validation files
-   - df_train_v2_reduced.pkl			:user prepared training file
+  - df_test_v1.pkl				: user prepared validation file for ML algorithm
+   - df_train_v2_reduced.pkl			:user prepared training file for ML algorithm
    - event*-*.csv 				:competition's event files
 - functions: Directory with python code
   - cluster.py			:the clustering functions
   - expand.py			:expanding functions
-  - ml_model.py			:fuctions related to the Machine Learning algorithm
+  - ml_model.py			:functions related to the Machine Learning algorithm
   - other.py			:utility functions
-- trackml-library-master: Direcoty competition utility files (https://www.kaggle.com/c/trackml-particle-identification/discussion/55708)
+- trackml-library-master: Directory with competition utility files (https://www.kaggle.com/c/trackml-particle-identification/discussion/55708)
 - conda_python-dependencies.yml		:conda environment file
-- create clustering.ipynb				:jupyter notebook, used to create solutions for traning
+- create clustering.ipynb				:jupyter notebook, used to create solutions for training
 - Create training.ipynb				:jupyter notebook, used to create training files
 - trackML_solution.ipynb				:jupyter notebook, our main solution notebook		
 
 ## HARDWARE: 
-We used verious hardware to train and run our solution
-
-any modern computer which can run ipython and jupyter notebooks will be ok
-
-The software was tested on windows 10 and ubuntu
+We used verious hardware to train and run our solution. Any modern computer which can run ipython and jupyter notebooks will be ok. The software was tested on Windows 10 and Ubuntu 16.04 LTS.
 
 ## SOFTWARE (python packages are detailed separately in `requirements.txt`):
 Conda - 4.6.11
