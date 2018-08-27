@@ -1,5 +1,4 @@
 # Solution #7 for competition trackML
-## **Please note this is still work in progress**
 Yuval Reina:  Yuval.reina@gmai.com
 Trian Xylouris: t.xylouris@gmail.com
 
