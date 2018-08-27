@@ -60,4 +60,4 @@ Follow trackML_solution.ipynb and run the full solution.
 
 
 
-You can also see and run most mart of this solution on [kaggle's kernel](https://www.kaggle.com/yuval6967/7th-place-clustering-extending-ml-merging-0-75)
+You can also see and run most parts of this solution on [kaggle's kernel](https://www.kaggle.com/yuval6967/7th-place-clustering-extending-ml-merging-0-75)
